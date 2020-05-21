@@ -37,6 +37,8 @@ try:
 except ImportError:
     pass
 
+_STATEMENT_LENGTH = tags.DATABASE_STATEMENT + '_len'
+
 
 class SQLAlchemyPatcher(Patcher):
     applicable = 'event' in globals()
@@ -71,6 +73,10 @@ class SQLAlchemyPatcher(Patcher):
             span.set_tag(tags.DATABASE_INSTANCE, repr(conn.engine.url))
         if statement:
             span.set_tag(tags.DATABASE_STATEMENT, statement)
+
+            # Record the statement length to facilitate adjustment of the max
+            # tag value length if the reporter is truncating statement tags
+            span.set_tag(_STATEMENT_LENGTH, len(statement))
         context.opentracing_span = span
 
     @staticmethod
